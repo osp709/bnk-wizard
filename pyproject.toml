@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "bnk-wizard"
+version = "0.1.0"
+description = "BNKWizard is an application to edit BNK sound files for games"
+authors = ["Om Shri Prasath"]
+license = "GNU General Public License v3.0"
+readme = "README.md"
+packages = [{include = "bnk_wizard"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
