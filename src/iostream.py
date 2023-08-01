@@ -10,8 +10,8 @@ class IOStream:
     IOStream Class : For Endian-based binary IO
     """
 
-    def __init__(self, file: str, little_endian: bool = True) -> None:
-        self.file = open(file, "r+b")
+    def __init__(self, file: str, format: str, little_endian: bool = True) -> None:
+        self.file = open(file, format)
         self.little_endian = little_endian
 
     def fmt_str(self, f_str: str):

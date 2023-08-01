@@ -23,7 +23,7 @@ class BNKWizard:
         self.replacements = []
 
         self.data_size = None
-        self.current_offset = None
+        self.abs_offset = None
 
     def read_bnk(self, bnk: str, little_endian: bool = True) -> None:
         """
@@ -31,7 +31,7 @@ class BNKWizard:
         """
         if self.input_stream:
             self.input_stream.close()
-        self.input_stream = IOStream(bnk, little_endian)
+        self.input_stream = IOStream(bnk, "rb", little_endian)
 
         if self.input_stream.read_str(4) != "BKHD":
             raise ValueError("The file doesn't have a BKHD section!")
@@ -49,6 +49,7 @@ class BNKWizard:
             )
 
         self.wem_size = self.didx_size // 12
+        self.replacements = [None] * self.wem_size
         for i in range(self.wem_size):
             wem_id, wem_offset, wem_length = [
                 self.input_stream.read_int() for i in range(3)
@@ -84,13 +85,13 @@ class BNKWizard:
                 + ")"
             )
 
-        self.current_offset = self.input_stream.get_position()
+        self.abs_offset = self.input_stream.get_position()
 
     def write_bnk(self, bnk: str, little_endian: bool = True):
         """
         Create BNK file and write data to it
         """
-        output_stream = IOStream(bnk, little_endian)
+        output_stream = IOStream(bnk, "wb", little_endian)
 
         output_stream.write_str("BKHD")
         output_stream.write_int(self.bkhd_size)
@@ -114,6 +115,10 @@ class BNKWizard:
             if self.replacements[i]:
                 replacement = open(self.replacements[i], "rb")
                 output_stream.write_bytes(replacement.read())
+            else:
+                self.input_stream.set_position(self.abs_offset + self.offsets[i])
+                original = self.input_stream.read_bytes(self.original_lengths[i])
+                output_stream.write_bytes(original)
 
         rest = self.input_stream.read_bytes(-1)
         output_stream.write_bytes(rest)
