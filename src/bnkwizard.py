@@ -4,9 +4,6 @@ bnkwizard Module
 from iostream import IOStream
 
 
-# TODO : Create a class for BKHD and and WEMData
-
-
 class BNKWizard:
     """
     BNKWizard Class
@@ -18,11 +15,13 @@ class BNKWizard:
         self.bkhd = None
         self.didx_size = None
         self.wem_size = None
-        self.ids = None
-        self.offsets = None
-        self.original_lengths = None
-        self.replaced_lengths = None
-        self.replacements = None
+
+        self.ids = []
+        self.offsets = []
+        self.original_lengths = []
+        self.replaced_lengths = []
+        self.replacements = []
+
         self.data_size = None
         self.current_offset = None
 
@@ -50,11 +49,6 @@ class BNKWizard:
             )
 
         self.wem_size = self.didx_size / 12
-        self.ids = []
-        self.offsets = []
-        self.original_lengths = []
-        self.replaced_lengths = []
-        self.replacements = []
         for i in range(self.wem_size):
             wem_id, wem_offset, wem_length = [
                 self.input_stream.read_int() for i in range(3)
@@ -121,6 +115,8 @@ class BNKWizard:
                 replacement = open(self.replacements[i], "rb")
                 output_stream.write_bytes(replacement.read())
 
+        rest = self.input_stream.read_bytes(-1)
+        output_stream.write_bytes(rest)
         output_stream.close()
 
     def __del__(self):
