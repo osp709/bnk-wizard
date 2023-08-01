@@ -26,4 +26,4 @@ def test_read_int():
     Test for read_int
     """
     inp = IOStream("data/hello.txt")
-    assert inp.read_int() == 1214606444
+    assert inp.read_int() == 1819043144

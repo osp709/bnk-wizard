@@ -19,7 +19,7 @@ class IOStream:
         Return the struct format string based on Little/Big Endian
         """
 
-        return ">" + f_str if self.little_endian else "<" + f_str
+        return "<" + f_str if self.little_endian else ">" + f_str
 
     def read_bytes(self, size: int) -> bytes:
         """
@@ -41,7 +41,7 @@ class IOStream:
         Read data from file as integer
         """
         data = self.file.read(4)
-        data = struct.unpack(self.fmt_str("i"), data)
+        data = struct.unpack(self.fmt_str("I"), data)
         return data[0]
 
     def write_bytes(self, data: bytes) -> int:

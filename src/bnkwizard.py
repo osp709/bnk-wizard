@@ -48,7 +48,7 @@ class BNKWizard:
                 + ", which is not divisible by 12)"
             )
 
-        self.wem_size = self.didx_size / 12
+        self.wem_size = self.didx_size // 12
         for i in range(self.wem_size):
             wem_id, wem_offset, wem_length = [
                 self.input_stream.read_int() for i in range(3)
