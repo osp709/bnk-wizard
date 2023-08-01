@@ -15,7 +15,7 @@ def test_read_bytes():
 
 def test_read_string():
     """
-    Test for read_bytes
+    Test for read_string
     """
     inp = IOStream("data/hello.txt")
     assert inp.read_str(len("Hello World!")) == "Hello World!"
@@ -23,7 +23,7 @@ def test_read_string():
 
 def test_read_int():
     """
-    Test for read_bytes
+    Test for read_int
     """
     inp = IOStream("data/hello.txt")
     assert inp.read_int() == 1214606444
