@@ -29,6 +29,7 @@ class BNKWizard:
         """
         Load an existing BNK file and read its contents
         """
+        self.bnk = bnk
         if self.input_stream:
             self.input_stream.close()
         self.input_stream = IOStream(bnk, "rb", little_endian)
@@ -76,7 +77,7 @@ class BNKWizard:
         if self.input_stream.read_str(4) != "DATA":
             raise ValueError("The file doesn't have a DATA section!")
         self.data_size = self.input_stream.read_int()
-        if self.data_size < sum(self.original_lengths):
+        if self.data_size != self.offsets[-1] + self.original_lengths[-1]:
             raise ValueError(
                 "The file has a corrupted DATA section! (calculated length: "
                 + sum(self.original_lengths)
@@ -100,16 +101,13 @@ class BNKWizard:
         output_stream.write_str("DIDX")
         output_stream.write_int(self.wem_size * 12)
 
-        curr_address = 0
         for i in range(self.wem_size):
             output_stream.write_int(self.ids[i])
-            output_stream.write_int(curr_address)
+            output_stream.write_int(self.offsets[i])
             output_stream.write_int(self.replaced_lengths[i])
 
-            curr_address += self.replaced_lengths[i]
-
         output_stream.write_str("DATA")
-        output_stream.write_int(sum(self.replaced_lengths))
+        output_stream.write_int(self.offsets[-1] + self.replaced_lengths[-1])
 
         for i in range(self.wem_size):
             if self.replacements[i]:
@@ -118,8 +116,8 @@ class BNKWizard:
             else:
                 self.input_stream.set_position(self.abs_offset + self.offsets[i])
                 original = self.input_stream.read_bytes(self.original_lengths[i])
+                output_stream.set_position(self.abs_offset + self.offsets[i])
                 output_stream.write_bytes(original)
-
         rest = self.input_stream.read_bytes(-1)
         output_stream.write_bytes(rest)
         output_stream.close()

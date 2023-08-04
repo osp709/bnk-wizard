@@ -7,7 +7,9 @@ from src.bnkwizard import BNKWizard
 
 def test_bnkwizard_read():
     bnkwizard = BNKWizard()
+    bnkwizard_copy = BNKWizard()
     bnkwizard.read_bnk("data/dummy.bnk")
+    bnkwizard_copy.read_bnk("data/dummy_copy.bnk")
 
     assert bnkwizard.bkhd_size == 32
     assert bnkwizard.data_size == 22352891
