@@ -1,7 +1,7 @@
 """
 bnkwizard Module
 """
-from modules.iostream import IOStream
+from modules.iostream import InputStream, OutputStream
 
 
 class BNKWizard:
@@ -32,7 +32,7 @@ class BNKWizard:
         self.bnk = bnk
         if self.input_stream:
             self.input_stream.close()
-        self.input_stream = IOStream(bnk, "rb", little_endian)
+        self.input_stream = InputStream(bnk, little_endian)
 
         if self.input_stream.read_str(4) != "BKHD":
             raise ValueError("The file doesn't have a BKHD section!")
@@ -92,7 +92,7 @@ class BNKWizard:
         """
         Create BNK file and write data to it
         """
-        output_stream = IOStream(bnk, "wb", little_endian)
+        output_stream = OutputStream(bnk, little_endian)
 
         output_stream.write_str("BKHD")
         output_stream.write_int(self.bkhd_size)

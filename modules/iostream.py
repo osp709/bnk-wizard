@@ -5,21 +5,43 @@ iostream Module
 import struct
 
 
-class IOStream:
-    """
-    IOStream Class : For Endian-based binary IO
-    """
-
-    def __init__(self, file: str, format: str, little_endian: bool = True) -> None:
+class Stream:
+    def __init__(self, file: str, format: str, little_endian: bool = True):
         self.file = open(file, format)
         self.little_endian = little_endian
 
     def fmt_str(self, f_str: str):
         """
-        Return the struct format string based on Little/Big Endian
+        Return the struct format string based on little/big endian
         """
-
         return "<" + f_str if self.little_endian else ">" + f_str
+
+    def get_position(self) -> int:
+        """
+        Get current location of the file cursor
+        """
+        return self.file.tell()
+
+    def set_position(self, pos: int) -> None:
+        """
+        Get file cursor location
+        """
+        self.file.seek(pos)
+
+    def close(self) -> None:
+        """
+        Close the file
+        """
+        self.file.close()
+
+
+class InputStream(Stream):
+    """
+    InputStream Class : For endian-based binary input
+    """
+
+    def __init__(self, file: str, little_endian: bool = True) -> None:
+        super().__init__(file, "rb", little_endian)
 
     def read_bytes(self, size: int) -> bytes:
         """
@@ -44,6 +66,15 @@ class IOStream:
         data = struct.unpack(self.fmt_str("I"), data)
         return data[0]
 
+
+class OutputStream(Stream):
+    """
+    OutputStream Class : For endian-based binary output
+    """
+
+    def __init__(self, file: str, little_endian: bool = True) -> None:
+        super().__init__(file, "wb", little_endian)
+
     def write_bytes(self, data: bytes) -> int:
         """
         Write binary data to file
@@ -63,21 +94,3 @@ class IOStream:
         """
         data = struct.pack(self.fmt_str("i"), data)
         return self.file.write(data)
-
-    def get_position(self) -> int:
-        """
-        Get current location of the file cursor
-        """
-        return self.file.tell()
-
-    def set_position(self, pos: int) -> None:
-        """
-        Get file cursor location
-        """
-        self.file.seek(pos)
-
-    def close(self) -> None:
-        """
-        Close the file
-        """
-        self.file.close()
