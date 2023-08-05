@@ -2,7 +2,7 @@
 Tests for BNKWizard class
 """
 
-from src.bnkwizard import BNKWizard
+from bnkwizard import BNKWizard
 
 
 def test_bnkwizard_read():
