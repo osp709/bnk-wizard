@@ -2,7 +2,7 @@
 Tests for IOStream class
 """
 
-from iostream import IOStream
+from modules.iostream import IOStream
 
 
 def test_read_bytes():

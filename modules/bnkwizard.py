@@ -1,7 +1,7 @@
 """
 bnkwizard Module
 """
-from iostream import IOStream
+from modules.iostream import IOStream
 
 
 class BNKWizard:
