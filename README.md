@@ -1,2 +1,2 @@
 # bnk-wizard
-BNKWizard is an application to edit BNK sound files for games
+BNKWizard is an application to edit WWise Bank sound files for games
