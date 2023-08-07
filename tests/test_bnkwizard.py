@@ -6,6 +6,9 @@ from modules.bnkwizard import BNKWizard
 
 
 def test_bnkwizard_read():
+    """
+    Testing Reading a Bank File
+    """
     bnkwizard = BNKWizard()
     bnkwizard_copy = BNKWizard()
     bnkwizard.read_bnk("data/dummy.bnk")
@@ -19,6 +22,9 @@ def test_bnkwizard_read():
 
 
 def test_bnkwizard_write():
+    """
+    Testing Writing a Bank File
+    """
     bnkwizard = BNKWizard()
 
     bnkwizard.read_bnk("data/dummy.bnk")

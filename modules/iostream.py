@@ -6,9 +6,16 @@ import struct
 
 
 class Stream:
-    def __init__(self, file: str, format: str, little_endian: bool = True):
-        self.file = open(file, format)
-        self.little_endian = little_endian
+    """
+    Stream Class : Stream superclass
+    """
+
+    def __init__(self, file: str, fmt: str, little_endian: bool = True):
+        if fmt in ["rb", "wb"]:
+            self.file = open(file, fmt)
+            self.little_endian = little_endian
+        else:
+            raise OSError("Wrong file read format!")
 
     def fmt_str(self, f_str: str):
         """

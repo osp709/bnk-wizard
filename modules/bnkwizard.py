@@ -10,6 +10,7 @@ class BNKWizard:
     """
 
     def __init__(self) -> None:
+        self.bnk = None
         self.input_stream = None
         self.bkhd_size = None
         self.bkhd = None
@@ -92,35 +93,38 @@ class BNKWizard:
         """
         Create BNK file and write data to it
         """
-        output_stream = OutputStream(bnk, little_endian)
+        if self.bnk:
+            output_stream = OutputStream(bnk, little_endian)
 
-        output_stream.write_str("BKHD")
-        output_stream.write_int(self.bkhd_size)
-        output_stream.write_bytes(self.bkhd)
+            output_stream.write_str("BKHD")
+            output_stream.write_int(self.bkhd_size)
+            output_stream.write_bytes(self.bkhd)
 
-        output_stream.write_str("DIDX")
-        output_stream.write_int(self.wem_size * 12)
+            output_stream.write_str("DIDX")
+            output_stream.write_int(self.wem_size * 12)
 
-        for i in range(self.wem_size):
-            output_stream.write_int(self.ids[i])
-            output_stream.write_int(self.offsets[i])
-            output_stream.write_int(self.replaced_lengths[i])
+            for i in range(self.wem_size):
+                output_stream.write_int(self.ids[i])
+                output_stream.write_int(self.offsets[i])
+                output_stream.write_int(self.replaced_lengths[i])
 
-        output_stream.write_str("DATA")
-        output_stream.write_int(self.offsets[-1] + self.replaced_lengths[-1])
+            output_stream.write_str("DATA")
+            output_stream.write_int(self.offsets[-1] + self.replaced_lengths[-1])
 
-        for i in range(self.wem_size):
-            if self.replacements[i]:
-                replacement = open(self.replacements[i], "rb")
-                output_stream.write_bytes(replacement.read())
-            else:
-                self.input_stream.set_position(self.abs_offset + self.offsets[i])
-                original = self.input_stream.read_bytes(self.original_lengths[i])
-                output_stream.set_position(self.abs_offset + self.offsets[i])
-                output_stream.write_bytes(original)
-        rest = self.input_stream.read_bytes(-1)
-        output_stream.write_bytes(rest)
-        output_stream.close()
+            for i in range(self.wem_size):
+                if self.replacements[i]:
+                    replacement = open(self.replacements[i], "rb")
+                    output_stream.write_bytes(replacement.read())
+                else:
+                    self.input_stream.set_position(self.abs_offset + self.offsets[i])
+                    original = self.input_stream.read_bytes(self.original_lengths[i])
+                    output_stream.set_position(self.abs_offset + self.offsets[i])
+                    output_stream.write_bytes(original)
+            rest = self.input_stream.read_bytes(-1)
+            output_stream.write_bytes(rest)
+            output_stream.close()
+        else:
+            raise ValueError("No source bank loaded!")
 
     def __del__(self):
         if self.input_stream:
