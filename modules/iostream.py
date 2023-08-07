@@ -11,11 +11,13 @@ class Stream:
     """
 
     def __init__(self, file: str, fmt: str, little_endian: bool = True):
-        if fmt in ["rb", "wb"]:
-            self.file = open(file, fmt)
-            self.little_endian = little_endian
+        if fmt == "rb":
+            self.file = open(file, "rb")
+        elif fmt == "wb":
+            self.file = open(file, "wb")
         else:
             raise OSError("Wrong file read format!")
+        self.little_endian = little_endian
 
     def fmt_str(self, f_str: str):
         """

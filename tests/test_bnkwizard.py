@@ -15,10 +15,9 @@ def test_bnkwizard_read():
     bnkwizard_copy.read_bnk("data/dummy_copy.bnk")
 
     assert bnkwizard.bkhd_size == 32
-    assert bnkwizard.data_size == 22352891
     assert bnkwizard.didx_size == 12312
-    assert bnkwizard.wem_size == 1026
-    assert bnkwizard.original_lengths == bnkwizard.replaced_lengths
+    assert bnkwizard.wem_array.wem_count == 1026
+    assert bnkwizard.wem_array.wem_data_size == 22352891
 
 
 def test_bnkwizard_write():

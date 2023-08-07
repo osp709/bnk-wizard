@@ -2,6 +2,7 @@
 bnkwizard Module
 """
 from modules.iostream import InputStream, OutputStream
+from modules.wemarray import WEMArray
 
 
 class BNKWizard:
@@ -15,15 +16,7 @@ class BNKWizard:
         self.bkhd_size = None
         self.bkhd = None
         self.didx_size = None
-        self.wem_size = None
-
-        self.ids = []
-        self.offsets = []
-        self.original_lengths = []
-        self.replaced_lengths = []
-        self.replacements = []
-
-        self.data_size = None
+        self.wem_array = WEMArray()
         self.abs_offset = None
 
     def read_bnk(self, bnk: str, little_endian: bool = True) -> None:
@@ -50,44 +43,23 @@ class BNKWizard:
                 + ", which is not divisible by 12)"
             )
 
-        self.wem_size = self.didx_size // 12
-        self.replacements = [None] * self.wem_size
-        for i in range(self.wem_size):
-            wem_id, wem_offset, wem_length = [
-                self.input_stream.read_int() for i in range(3)
-            ]
-
-            if i > 0 and wem_offset < self.offsets[i - 1]:
-                raise ValueError(
-                    "The file has a corrupted DIDX section! (WEM number "
-                    + (i + 1)
-                    + " is located at offset "
-                    + wem_offset
-                    + ", while WEM number "
-                    + i
-                    + " is located at offset "
-                    + self.offsets[i - 1]
-                    + ")"
-                )
-
-            self.ids.append(wem_id)
-            self.offsets.append(wem_offset)
-            self.original_lengths.append(wem_length)
-            self.replaced_lengths.append(wem_length)
+        self.wem_array.get_wem_metadata(self.input_stream, self.didx_size // 12)
 
         if self.input_stream.read_str(4) != "DATA":
             raise ValueError("The file doesn't have a DATA section!")
-        self.data_size = self.input_stream.read_int()
-        if self.data_size != self.offsets[-1] + self.original_lengths[-1]:
+        data_size = self.input_stream.read_int()
+        if data_size != self.wem_array.wem_data_size:
             raise ValueError(
                 "The file has a corrupted DATA section! (calculated length: "
-                + sum(self.original_lengths)
+                + sum(self.wem_array.wem_data_size)
                 + ", actual length: "
-                + self.data_size
+                + data_size
                 + ")"
             )
 
         self.abs_offset = self.input_stream.get_position()
+
+        self.wem_array.get_wem_data(self.input_stream, self.abs_offset)
 
     def write_bnk(self, bnk: str, little_endian: bool = True):
         """
@@ -101,25 +73,10 @@ class BNKWizard:
             output_stream.write_bytes(self.bkhd)
 
             output_stream.write_str("DIDX")
-            output_stream.write_int(self.wem_size * 12)
-
-            for i in range(self.wem_size):
-                output_stream.write_int(self.ids[i])
-                output_stream.write_int(self.offsets[i])
-                output_stream.write_int(self.replaced_lengths[i])
+            self.wem_array.write_wem_metadata(output_stream)
 
             output_stream.write_str("DATA")
-            output_stream.write_int(self.offsets[-1] + self.replaced_lengths[-1])
-
-            for i in range(self.wem_size):
-                if self.replacements[i]:
-                    replacement = open(self.replacements[i], "rb")
-                    output_stream.write_bytes(replacement.read())
-                else:
-                    self.input_stream.set_position(self.abs_offset + self.offsets[i])
-                    original = self.input_stream.read_bytes(self.original_lengths[i])
-                    output_stream.set_position(self.abs_offset + self.offsets[i])
-                    output_stream.write_bytes(original)
+            self.wem_array.write_wem_data(output_stream, self.abs_offset)
             rest = self.input_stream.read_bytes(-1)
             output_stream.write_bytes(rest)
             output_stream.close()
