@@ -55,11 +55,17 @@ class WEMArray:
 
     def get_wem_data(self, inp: InputStream, abs_offset: int):
         """
-        r
+        Read DATA (Data) section into array
         """
         for i in range(self.wem_count):
             inp.set_position(abs_offset + self.wems[i].offset)
             self.wems[i].data = inp.read_bytes(self.wems[i].size)
+
+    # TODO : Replace wem_data
+    def replace_wem_data(self, new_wem: str):
+        """
+        Replace a particular WEM data with new WEM data
+        """
 
     def write_wem_metadata(self, out: OutputStream):
         """
