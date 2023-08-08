@@ -73,10 +73,12 @@ class BNKWizard:
             output_stream.write_bytes(self.bkhd)
 
             output_stream.write_str("DIDX")
+            self.wem_array.create_final_wem_data()
             self.wem_array.write_wem_metadata(output_stream)
 
             output_stream.write_str("DATA")
             self.wem_array.write_wem_data(output_stream, self.abs_offset)
+            self.wem_array.clear_final_wem_data()
             rest = self.input_stream.read_bytes(-1)
             output_stream.write_bytes(rest)
             output_stream.close()

@@ -43,6 +43,9 @@ class Stream:
         """
         self.file.close()
 
+    def __del__(self):
+        self.close()
+
 
 class InputStream(Stream):
     """
