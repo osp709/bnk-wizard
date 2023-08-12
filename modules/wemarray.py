@@ -32,7 +32,6 @@ class WEMArray:
         self.wem_ids = []
         self.rep_wem_ids = set()
         self.wem_id_idx_map = {}
-        self.wem_data_size = 0
 
     def get_wem_metadata(self, inp: InputStream, wem_count: int):
         """
@@ -60,7 +59,6 @@ class WEMArray:
                     + ")"
                 )
             self.wem_ids.append(self.wems[i].wem_id)
-        self.wem_data_size = self.wems[-1].offset + self.wems[-1].size
 
     def add_replacement(self, wem_id: int, new_wem: str):
         """

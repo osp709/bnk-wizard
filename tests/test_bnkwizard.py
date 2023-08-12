@@ -17,7 +17,6 @@ def test_bnkwizard_read():
     assert bnkwizard.bkhd_size == 32
     assert bnkwizard.didx_size == 12312
     assert bnkwizard.wem_array.wem_count == 1026
-    assert bnkwizard.wem_array.wem_data_size == 22352891
 
 
 def test_bnkwizard_write():

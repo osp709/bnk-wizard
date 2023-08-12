@@ -48,10 +48,10 @@ class BNKWizard:
         if self.input_stream.read_str(4) != "DATA":
             raise ValueError("The file doesn't have a DATA section!")
         data_size = self.input_stream.read_int()
-        if data_size != self.wem_array.wem_data_size:
+        if data_size != self.wem_array.wems[-1].size + self.wem_array.wems[-1].offset:
             raise ValueError(
                 "The file has a corrupted DATA section! (calculated length: "
-                + sum(self.wem_array.wem_data_size)
+                + sum(self.wem_array.wems[-1].size + self.wem_array.wems[-1].offset)
                 + ", actual length: "
                 + data_size
                 + ")"
