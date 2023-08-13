@@ -9,6 +9,7 @@ packages = [{include = "bnk_wizard"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+pygame = "^2.5.0"
 
 
 [build-system]

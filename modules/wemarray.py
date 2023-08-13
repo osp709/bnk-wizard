@@ -33,7 +33,7 @@ class WEMArray:
         self.rep_wem_ids = set()
         self.wem_id_idx_map = {}
 
-    def get_wem_metadata(self, inp: InputStream, wem_count: int):
+    def get_wem_metadata_from_bnk(self, inp: InputStream, wem_count: int):
         """
         Read DIDX (Data Index) section into array
         """
@@ -78,7 +78,7 @@ class WEMArray:
         """
         self.rep_wem_ids.remove(wem_id)
 
-    def get_wem_data(self, inp: InputStream, abs_offset: int):
+    def get_wem_data_from_bnk(self, inp: InputStream, abs_offset: int):
         """
         Read DATA (Data) section into array
         """
@@ -108,13 +108,20 @@ class WEMArray:
             self.final_wems[idx].offset = offset
             self.final_wems[idx].size = size
 
+    def get_wem(self, wem_id: int) -> WEM:
+        """
+        Get WEM data given id
+        """
+        idx = self.wem_id_idx_map[wem_id]
+        return self.wems[idx]
+
     def clear_final_wem_data(self):
         """
         Clear final data after writing data
         """
         self.final_wems = [self.WEM() for _ in range(self.wem_count)]
 
-    def write_wem_metadata(self, out: OutputStream):
+    def write_wem_metadata_to_bnk(self, out: OutputStream):
         """
         Write DIDX (Data Index) section into file
         """
@@ -125,7 +132,7 @@ class WEMArray:
             out.write_int(self.final_wems[idx].offset)
             out.write_int(self.final_wems[idx].size)
 
-    def write_wem_data(self, out: OutputStream, abs_offset: int):
+    def write_wem_data_to_bnk(self, out: OutputStream, abs_offset: int):
         """
         Write DATA (Data) section into file
         """

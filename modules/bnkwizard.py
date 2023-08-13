@@ -38,28 +38,30 @@ class BNKWizard:
         self.didx_size = self.input_stream.read_int()
         if self.didx_size % 12 != 0:
             raise ValueError(
-                "The file has a corrupted DIDX section! (its length is "
-                + self.didx_size
-                + ", which is not divisible by 12)"
+                "The file has a corrupted DIDX section! (its length is ",
+                self.didx_size,
+                ", which is not divisible by 12)",
             )
 
-        self.wem_array.get_wem_metadata(self.input_stream, self.didx_size // 12)
+        self.wem_array.get_wem_metadata_from_bnk(
+            self.input_stream, self.didx_size // 12
+        )
 
         if self.input_stream.read_str(4) != "DATA":
             raise ValueError("The file doesn't have a DATA section!")
         data_size = self.input_stream.read_int()
         if data_size != self.wem_array.wems[-1].size + self.wem_array.wems[-1].offset:
             raise ValueError(
-                "The file has a corrupted DATA section! (calculated length: "
-                + sum(self.wem_array.wems[-1].size + self.wem_array.wems[-1].offset)
-                + ", actual length: "
-                + data_size
-                + ")"
+                "The file has a corrupted DATA section! (calculated length: ",
+                sum(self.wem_array.wems[-1].size + self.wem_array.wems[-1].offset),
+                ", actual length: ",
+                data_size,
+                ")",
             )
 
         self.abs_offset = self.input_stream.get_position()
 
-        self.wem_array.get_wem_data(self.input_stream, self.abs_offset)
+        self.wem_array.get_wem_data_from_bnk(self.input_stream, self.abs_offset)
 
     def write_bnk(self, bnk: str, little_endian: bool = True):
         """
@@ -74,10 +76,10 @@ class BNKWizard:
 
             output_stream.write_str("DIDX")
             self.wem_array.create_final_wem_data()
-            self.wem_array.write_wem_metadata(output_stream)
+            self.wem_array.write_wem_metadata_to_bnk(output_stream)
 
             output_stream.write_str("DATA")
-            self.wem_array.write_wem_data(output_stream, self.abs_offset)
+            self.wem_array.write_wem_data_to_bnk(output_stream, self.abs_offset)
             self.wem_array.clear_final_wem_data()
             rest = self.input_stream.read_bytes(-1)
             output_stream.write_bytes(rest)

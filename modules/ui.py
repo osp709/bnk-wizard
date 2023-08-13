@@ -3,153 +3,152 @@ Module for buiding the application's UI
 """
 
 import tkinter as tk
-import tkinter.font as font
-from dataclasses import dataclass
-from tkinter.filedialog import askopenfilename
+import subprocess
+import tempfile
+import os
+from typing import Callable, Any, List
+from tkinter import ttk, filedialog, messagebox
+from pygame import mixer
 from modules.bnkwizard import BNKWizard
 
 
-class UI:
-
+class UserInterfaceElements:
     """
-    Class for buiding the application's UI
+    Class to create UI elements
     """
 
-    @dataclass
-    class WEMUI:
-        """
-        WEM UI Element
-        """
+    def create_root(self, title: str):
+        """Create Root"""
+        root = tk.Tk()
+        root.title(title)
+        return root
 
-        display_label: tk.Label
-        edit_btn: tk.Button
-        replace_label: tk.Label
-        remove_btn: tk.Button
+    def create_checkbox(self, root: tk.Tk, text: str, var_type: Callable, def_val: Any):
+        """Create Checkbox"""
+        var = var_type(root, value=def_val)
+        btn = ttk.Checkbutton(master=root, text=text, variable=var)
+        return var, btn
 
-        def __init__(self):
-            pass
+    def create_label(self, root: tk.Tk, text: str):
+        """Create Label"""
+        lbl = ttk.Label(master=root, text=text)
+        return lbl
+
+    def create_button(self, root: tk.Tk, text: str, command: Callable):
+        """Create Button"""
+        btn = ttk.Button(master=root, text=text, command=command)
+        return btn
+
+    def create_option(self, root: tk.Tk, option_list: List[str]):
+        """Create Button"""
+        opt = ttk.Combobox(master=root, *option_list)
+        return opt
+
+
+class Application:
+    """
+    Class for buiding the application's interface
+    """
 
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("BNK Wizard")
-        self.root.configure(bg="black")
+        mixer.init()
         self.bnkwizard = BNKWizard()
-        self.background = "black"
-        self.bg_button_color = self.background
-        self.bg_checkbox_color = self.background
-        self.bg_label_color = "blue"
-        self.fg_button_color = "aqua"
-        self.fg_checkbox_color = "yellow"
-        self.fg_label_color = "white"
-        self.wem_ui_list = []
-        self.src_bnkfile = ""
-        self.top_font_settings = font.Font(family="Helvetica", size=12)
-        self.wem_font_settings = font.Font(family="Helvetica", size=16)
+        ui_elem = UserInterfaceElements()
+        self.root = ui_elem.create_root("BNK Wizard")
 
-        self.little_endian = tk.BooleanVar(self.root)
-        self.little_endian.set(True)
-        self.little_endian_check = tk.Checkbutton(
-            self.root,
-            text="Little Endian",
-            background=self.background,
-            activebackground=self.bg_button_color,
-            activeforeground=self.fg_checkbox_color,
-            foreground=self.fg_checkbox_color,
-            selectcolor=self.bg_button_color,
-            variable=self.little_endian,
-            font=self.top_font_settings,
+        self.little_endian, self.little_endian_check = ui_elem.create_checkbox(
+            self.root, "Little Endian", tk.BooleanVar, 1
         )
-        self.little_endian_check.grid(
-            row=0,
-            column=0,
-            padx=(10, 5),
-            pady=(10, 10),
-        )
-        self.open_bnk_button = tk.Button(
+        self.little_endian_check.grid(row=0, column=2, padx=(10, 5), pady=(10, 10))
+
+        self.open_bnk_button = ui_elem.create_button(
             self.root,
             text="OPEN BNK",
-            background=self.bg_button_color,
-            foreground=self.fg_button_color,
-            activeforeground=self.fg_button_color,
-            activebackground=self.bg_button_color,
             command=self.read_base_bnk,
-            font=self.top_font_settings,
         )
-        self.open_bnk_button.grid(row=0, column=3, padx=(10, 5), pady=(10, 10))
-        self.save_bnk_button = tk.Button(
+        self.open_bnk_button.grid(row=0, column=0, padx=(10, 5), pady=(10, 10))
+        self.save_bnk_button = ui_elem.create_button(
             self.root,
             text="SAVE BNK",
-            background=self.bg_button_color,
-            foreground=self.fg_button_color,
-            activeforeground=self.fg_button_color,
-            activebackground=self.bg_button_color,
-            state="disabled",
             command=self.write_new_bnk,
-            font=self.top_font_settings,
         )
-        self.save_bnk_button.grid(
-            row=0,
-            column=5,
-            padx=(5, 10),
-            pady=(10, 10),
-        )
-        self.root.resizable(False, False)
+        self.save_bnk_button["state"] = tk.DISABLED
+        self.save_bnk_button.grid(row=0, column=1, padx=(5, 10), pady=(10, 10))
 
-        self.wem_array_frame = tk.Frame(self.root, bg="blue")
-        self.wem_array_frame.grid(row=1, column=3, padx=(10, 10), pady=(0, 10))
+        top_wem_sep = ttk.Separator(
+            self.root,
+            orient=tk.HORIZONTAL,
+        )
+        top_wem_sep.grid(
+            row=1, column=0, columnspan=6, sticky=tk.NSEW, padx=(5, 5), pady=(5, 5)
+        )
+
+        self.edit_wem_opt = ui_elem.create_option(
+            self.root, self.bnkwizard.wem_array.wem_ids
+        )
+        self.edit_wem_opt.grid(
+            row=2, column=0, columnspan=2, sticky=tk.EW, padx=(10, 10), pady=(10, 10)
+        )
+        self.edit_wem_opt["state"] = "readonly"
+        self.play_btn = ui_elem.create_button(self.root, "Play Audio", self.play_audio)
+        self.play_btn.grid(row=2, column=2, padx=(10, 10), pady=(10, 10))
+        self.root.resizable(False, False)
+        for i in range(self.root.grid_size()[0]):
+            self.root.grid_columnconfigure(i, weight=1)
+
+        self.root.mainloop()
 
     def read_base_bnk(self):
         """
         Get the Base BNK file
         """
-        self.src_bnkfile = askopenfilename(filetypes=[("WWise Bank Files", ".bnk")])
-        if self.src_bnkfile != "":
-            if self.save_bnk_button["state"] == tk.DISABLED:
-                self.save_bnk_button["state"] = tk.ACTIVE
-            self.bnkwizard.read_bnk(self.src_bnkfile, self.little_endian)
-            edit_image = tk.PhotoImage(file="assets/edit.png")
-            remove_img = tk.PhotoImage(file="assets/remove.png")
-            for i in range(5):
-                wem = self.bnkwizard.wem_array.wems[i]
-                wem_ui = self.WEMUI()
-                wem_ui.display_label = tk.Label(
-                    self.wem_array_frame,
-                    text=str(wem.wem_id) + ".bnk",
-                    foreground=self.fg_label_color,
-                    background=self.bg_label_color,
-                    font=self.wem_font_settings,
+        src_bnkfile = filedialog.askopenfilename(
+            filetypes=[("WWise Bank Files", ".bnk")]
+        )
+        if src_bnkfile != "":
+            self.save_bnk_button["state"] = tk.ACTIVE
+            self.bnkwizard.read_bnk(src_bnkfile, self.little_endian)
+            self.edit_wem_opt["values"] = self.bnkwizard.wem_array.wem_ids
+            self.edit_wem_opt.set(self.bnkwizard.wem_array.wem_ids[0])
+
+    def play_audio(self):
+        """
+        Play selected audio
+        """
+        sel_id = int(self.edit_wem_opt.get())
+        if sel_id in self.bnkwizard.wem_array.wem_ids:
+            wem_data = self.bnkwizard.wem_array.get_wem(sel_id)
+            wem_filename = tempfile.gettempdir() + "\\temp.wem"
+            with open(wem_filename, mode="wb") as wem_file:
+                wem_file.write(wem_data.data)
+            try:
+                mixer.music.unload()
+            finally:
+                pass
+            try:
+                wav_filename = wem_filename.split(".wem")[0] + ".wav"
+                subprocess.check_call(
+                    [
+                        r"modules\\vgmstream-win64\\vgmstream-cli.exe",
+                        "-o",
+                        wav_filename,
+                        wem_filename,
+                    ]
                 )
-                wem_ui.display_label.grid(row=i, column=0, padx=(10, 5), pady=(5, 5))
-                wem_ui.edit_btn = tk.Button(
-                    self.wem_array_frame,
-                    image=edit_image,
-                    background=self.bg_button_color,
-                    foreground=self.fg_button_color,
-                    activeforeground=self.fg_button_color,
-                    activebackground=self.bg_button_color,
-                )
-                wem_ui.edit_btn.image = edit_image
-                wem_ui.edit_btn.grid(row=i, column=1, padx=(5, 5), pady=(5, 5))
-                wem_ui.replace_label = tk.Label(
-                    self.wem_array_frame,
-                    text="",
-                    foreground=self.fg_label_color,
-                    background=self.bg_label_color,
-                    font=self.wem_font_settings,
-                )
-                wem_ui.replace_label.grid(row=i, column=2, padx=(5, 5), pady=(5, 5))
-                wem_ui.remove_btn = tk.Button(
-                    self.wem_array_frame,
-                    image=remove_img,
-                    background=self.bg_button_color,
-                    foreground=self.fg_button_color,
-                    activeforeground=self.fg_button_color,
-                    activebackground=self.bg_button_color,
-                )
-                wem_ui.remove_btn.image = remove_img
-                wem_ui.remove_btn.grid(row=i, column=3, padx=(5, 5), pady=(5, 5))
+                mixer.music.load(wav_filename)
+                mixer.music.play(0)
+            except subprocess.CalledProcessError as err:
+                print(err.output)
+            except Exception as err:
+                print(err)
 
     def write_new_bnk(self):
         """
         Write the Base BNK file
         """
+        dst_bnkfile = filedialog.asksaveasfilename(
+            defaultextension=".bnk", filetypes=[("WWise Bank Files", ".bnk")]
+        )
+
+        self.bnkwizard.write_bnk(dst_bnkfile, self.little_endian)
+        messagebox.showinfo("BNK Wizard", "File Saved!")
