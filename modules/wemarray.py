@@ -60,7 +60,7 @@ class WEMArray:
                 )
             self.wem_ids.append(self.wems[i].wem_id)
 
-    def add_replacement(self, wem_id: int, new_wem: str):
+    def make_replacement(self, wem_id: int, new_wem: str):
         """
         Add replacement WEM
         """
@@ -74,7 +74,7 @@ class WEMArray:
 
     def remove_replacement(self, wem_id: int):
         """
-        Add replacement WEM
+        Remove replacement WEM
         """
         self.rep_wem_ids.remove(wem_id)
 
@@ -113,7 +113,7 @@ class WEMArray:
         Get WEM data given id
         """
         idx = self.wem_id_idx_map[wem_id]
-        return self.wems[idx]
+        return self.rep_wems[idx] if wem_id in self.rep_wem_ids else self.wems[idx]
 
     def clear_final_wem_data(self):
         """

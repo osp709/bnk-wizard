@@ -10,7 +10,11 @@ packages = [{include = "bnk_wizard"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 pygame = "^2.5.0"
+pillow = "^10.0.0"
 
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.17.5"
 
 [build-system]
 requires = ["poetry-core"]

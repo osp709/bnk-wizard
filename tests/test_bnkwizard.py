@@ -40,7 +40,7 @@ def test_bnkwizard_replace():
     bnkwizard = BNKWizard()
 
     bnkwizard.read_bnk("data/dummy.bnk")
-    bnkwizard.wem_array.add_replacement(
+    bnkwizard.wem_array.make_replacement(
         bnkwizard.wem_array.wem_ids[0], "data/113946849.wem"
     )
     bnkwizard.write_bnk("data/dummy_new.bnk")
