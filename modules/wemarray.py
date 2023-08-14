@@ -108,12 +108,14 @@ class WEMArray:
             self.final_wems[idx].offset = offset
             self.final_wems[idx].size = size
 
-    def get_wem(self, wem_id: int) -> WEM:
+    def get_wem(self, wem_id: int, repl: bool = False) -> WEM:
         """
         Get WEM data given id
         """
         idx = self.wem_id_idx_map[wem_id]
-        return self.rep_wems[idx] if wem_id in self.rep_wem_ids else self.wems[idx]
+        if repl and wem_id in self.rep_wem_ids:
+            return self.rep_wems[idx]
+        return self.wems[idx]
 
     def clear_final_wem_data(self):
         """
