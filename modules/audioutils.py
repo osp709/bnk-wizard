@@ -57,3 +57,11 @@ def play_wem_audio(wem_data: bytes):
         mixer.music.play()
     except subprocess.CalledProcessError as err:
         print(err.output)
+
+
+def stop_wem_audio():
+    """Stop if any audio is playing"""
+    try:
+        mixer.music.stop()
+    finally:
+        pass

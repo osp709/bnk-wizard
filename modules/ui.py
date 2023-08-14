@@ -8,7 +8,7 @@ from tkinter import ttk, filedialog, messagebox
 from pygame import mixer
 from PIL import Image, ImageTk
 from modules.bnkwizard import BNKWizard
-from modules.audioutils import play_wem_audio
+from modules.audioutils import play_wem_audio, stop_wem_audio
 
 
 class UserInterfaceElements:
@@ -140,7 +140,7 @@ class Application:
             wem_btns_frame,
             text="Stop",
             image=ui_elem.load_image(file="assets\\stop_black.png", size=24),
-            command=self.stop_audio,
+            command=stop_wem_audio,
             disabled=True,
         )
         self.wem_edit_btns["stop"].grid(row=2, column=2, padx=(5, 10), pady=(10, 10))
@@ -208,13 +208,6 @@ class Application:
             rep_list = list(self.bnkwizard.wem_array.rep_wem_ids)
             self.rep_wem_id_list["values"] = list(self.bnkwizard.wem_array.rep_wem_ids)
             self.rep_wem_id_list.set(rep_list[0] if len(rep_list) > 0 else "")
-
-    def stop_audio(self):
-        """Stop if any audio is playing"""
-        try:
-            mixer.music.stop()
-        finally:
-            pass
 
     def write_new_bnk(self):
         """Write the Base BNK file"""
