@@ -68,12 +68,6 @@ class UserInterfaceElements:
             btn["state"] = tk.DISABLED
         return btn
 
-    def create_combobox(self, root: tk.Tk, option_list: List[str]):
-        """Create Combobox"""
-        opt = ttk.Combobox(master=root, *option_list)
-        opt["state"] = "readonly"
-        return opt
-
     def create_tree(self, root: tk.Tk, columns: [], headings: []):
         """Create Tree"""
         tree = ttk.Treeview(root, columns=columns, show="headings")
