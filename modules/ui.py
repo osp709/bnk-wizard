@@ -191,7 +191,9 @@ class Application:
         """Edit the selected wem"""
         wem_id = int(self.wem_id_list.get()) if self.wem_id_list.get() else -1
         if wem_id in self.bnkwizard.wem_array.wem_ids:
-            new_wemfile = filedialog.askopenfilename(filetypes=[("WEM Files", ".wem")])
+            new_wemfile = filedialog.askopenfilename(
+                filetypes=[("Audio Files", ".wem .wav .mp3")]
+            )
             if new_wemfile != "":
                 self.bnkwizard.wem_array.make_replacement(wem_id, new_wemfile)
                 rep_list = list(self.bnkwizard.wem_array.rep_wem_ids)
