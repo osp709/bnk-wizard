@@ -9,6 +9,7 @@ from pygame import mixer
 from PIL import Image, ImageTk
 from modules.bnkwizard import BNKWizard
 from modules.audioutils import play_wem_audio, stop_wem_audio, save_wem_to_file
+import os
 
 
 class UserInterfaceElements:
@@ -106,16 +107,9 @@ class Application:
             disabled=True,
         )
         self.all_btns["export"].grid(row=0, column=1, padx=(5, 5), pady=(10, 10))
-        self.all_btns["playr"] = ui_elem.create_button(
-            self.root,
-            text="Play(O)",
-            image=ui_elem.load_image(file="assets\\play.png", size=16),
-            command=lambda: self.play_audio(False),
-            disabled=True,
-        )
         self.all_btns["playo"] = ui_elem.create_button(
             self.root,
-            text="Play(R)",
+            text="Play(O)",
             image=ui_elem.load_image(file="assets\\play.png", size=16),
             command=lambda: self.play_audio(False),
             disabled=True,
@@ -123,20 +117,12 @@ class Application:
         self.all_btns["playo"].grid(row=0, column=2, padx=(5, 5), pady=(10, 10))
         self.all_btns["playr"] = ui_elem.create_button(
             self.root,
-            text="Play Repl",
+            text="Play(R)",
             image=ui_elem.load_image(file="assets\\play.png", size=16),
-            command=lambda: self.play_audio(False),
+            command=lambda: self.play_audio(True),
             disabled=True,
         )
-        self.all_btns["playr"].grid(row=0, column=3, padx=(5, 5), pady=(10, 10))
-        self.all_btns["stop"] = ui_elem.create_button(
-            self.root,
-            text="Stop",
-            image=ui_elem.load_image(file="assets\\stop.png", size=16),
-            command=stop_wem_audio,
-            disabled=True,
-        )
-        self.all_btns["stop"].grid(row=0, column=4, padx=(5, 5), pady=(10, 10))
+        self.all_btns["playr"].grid(row=0, column=3, padx=(5, 10), pady=(10, 10))
         self.all_btns["save"] = ui_elem.create_button(
             self.root,
             text="Save",
@@ -144,7 +130,7 @@ class Application:
             command=self.save_wem,
             disabled=True,
         )
-        self.all_btns["save"].grid(row=0, column=5, padx=(5, 5), pady=(10, 10))
+        self.all_btns["save"].grid(row=1, column=0, padx=(10, 5), pady=(10, 10))
         self.all_btns["replace"] = ui_elem.create_button(
             self.root,
             text="Replace",
@@ -152,7 +138,7 @@ class Application:
             command=self.add_wem_replacement,
             disabled=True,
         )
-        self.all_btns["replace"].grid(row=0, column=6, padx=(5, 5), pady=(10, 10))
+        self.all_btns["replace"].grid(row=1, column=1, padx=(5, 5), pady=(10, 10))
         self.all_btns["remove"] = ui_elem.create_button(
             self.root,
             text="Undo",
@@ -160,29 +146,22 @@ class Application:
             command=self.remove_wem_replacement,
             disabled=True,
         )
-        self.all_btns["remove"].grid(row=0, column=7, padx=(5, 10), pady=(10, 10))
+        self.all_btns["remove"].grid(row=1, column=2, padx=(5, 5), pady=(10, 10))
+        self.all_btns["stop"] = ui_elem.create_button(
+            self.root,
+            text="Stop",
+            image=ui_elem.load_image(file="assets\\stop.png", size=16),
+            command=stop_wem_audio,
+            disabled=True,
+        )
+        self.all_btns["stop"].grid(row=1, column=3, padx=(5, 10), pady=(10, 10))
         top_wem_sep = ttk.Separator(
             self.root,
             orient=tk.HORIZONTAL,
         )
         top_wem_sep.grid(
-            row=1, column=0, columnspan=8, sticky=tk.NSEW, padx=(5, 5), pady=(5, 5)
+            row=2, column=0, columnspan=8, sticky=tk.NSEW, padx=(5, 5), pady=(5, 5)
         )
-
-        self.wem_id_list = ui_elem.create_combobox(
-            self.root, self.bnkwizard.wem_array.wem_ids
-        )
-        self.wem_id_list.grid(
-            row=2, column=0, columnspan=4, sticky=tk.EW, padx=(10, 10), pady=(10, 10)
-        )
-        self.wem_id_list.set("All Id List")
-        self.rep_wem_id_list = ui_elem.create_combobox(
-            self.root, list(self.bnkwizard.wem_array.rep_wem_ids)
-        )
-        self.rep_wem_id_list.grid(
-            row=2, column=4, columnspan=8, sticky=tk.EW, padx=(10, 10), pady=(10, 10)
-        )
-        self.rep_wem_id_list.set("Replaced Id List")
         self.wem_tree = ui_elem.create_tree(
             self.root,
             columns=[
@@ -193,12 +172,18 @@ class Application:
             headings=["ID", "Original Wem", "Replacement Wem"],
         )
         self.wem_tree.grid(
-            row=3, column=0, columnspan=8, sticky=tk.EW, padx=(10, 10), pady=(10, 10)
+            row=4, column=0, columnspan=4, sticky=tk.NSEW, padx=(10, 0), pady=(10, 10)
         )
+
+        scrollbar = ttk.Scrollbar(
+            self.root, orient=tk.VERTICAL, command=self.wem_tree.yview
+        )
+        self.wem_tree.configure(yscroll=scrollbar.set)
+        self.wem_tree.bind("<<TreeviewSelect>>", self.enable_play_repl_button)
+        scrollbar.grid(row=4, column=4, sticky=tk.NS, padx=(0, 10), pady=(10, 10))
         self.root.resizable(False, False)
         for i in range(self.root.grid_size()[0]):
             self.root.grid_columnconfigure(i, weight=1)
-
         self.root.mainloop()
 
     def read_base_bnk(self):
@@ -207,66 +192,101 @@ class Application:
             filetypes=[("WWise Bank Files", ".bnk")]
         )
         if src_bnkfile != "":
+            for item in self.wem_tree.get_children():
+                self.wem_tree.delete(item)
+            self.bnkwizard = BNKWizard()
             for btn_name, btn in self.all_btns.items():
                 if btn_name != "playr":
                     btn["state"] = tk.NORMAL
             self.bnkwizard.read_bnk(src_bnkfile, True)
-            self.wem_id_list["values"] = self.bnkwizard.wem_array.wem_ids
-            self.wem_id_list.set(self.bnkwizard.wem_array.wem_ids[0])
-            self.rep_wem_id_list.set("")
+            for itr, wem_id in enumerate(self.bnkwizard.wem_array.wem_ids):
+                self.wem_tree.insert(
+                    "",
+                    tk.END,
+                    values=(
+                        wem_id,
+                        str(itr + 1).zfill(len(str(self.bnkwizard.wem_array.wem_count)))
+                        + ".bnk",
+                        "",
+                    ),
+                )
 
     def save_wem(self):
         """Save wem to file"""
-
-        sel_id = int(self.wem_id_list.get()) if self.wem_id_list.get() else -1
-        if sel_id in self.bnkwizard.wem_array.wem_ids:
-            wem_data = self.bnkwizard.wem_array.get_wem(sel_id)
-            wem_filename = filedialog.asksaveasfilename(
-                filetypes=[
-                    ("wem Audio", ".wem"),
-                    ("wav Audio", ".wav"),
-                ],
-                initialfile=str(wem_data.wem_id),
-                defaultextension=".wem",
-            )
-            res = 0
-            if wem_filename != "" and wem_filename.endswith((".wem", ".wav")):
-                res = save_wem_to_file(wem_data.data, wem_filename)
-            if res:
-                messagebox.showinfo("BNK Wizard", "File saved!")
+        if self.wem_tree.focus() != "":
+            sel_wem_data = self.wem_tree.item(self.wem_tree.focus())
+            sel_id = sel_wem_data["values"][0]
+            if sel_id in self.bnkwizard.wem_array.wem_ids:
+                wem_data = self.bnkwizard.wem_array.get_wem(sel_id)
+                wem_filename = filedialog.asksaveasfilename(
+                    filetypes=[
+                        ("wem Audio", ".wem"),
+                        ("wav Audio", ".wav"),
+                    ],
+                    initialfile=str(wem_data.wem_id),
+                    defaultextension=".wem",
+                )
+                res = 0
+                if wem_filename != "" and wem_filename.endswith((".wem", ".wav")):
+                    res = save_wem_to_file(wem_data.data, wem_filename)
+                if res:
+                    messagebox.showinfo("BNK Wizard", "File saved!")
+                else:
+                    messagebox.showerror("BNK Wizard", "Error saving file!")
             else:
-                messagebox.showerror("BNK Wizard", "Error saving file!")
-        else:
-            messagebox.showerror("BNK Wizard", "Wrong filename given!")
+                messagebox.showerror("BNK Wizard", "Wrong filename given!")
+
+    def enable_play_repl_button(self, event):
+        """Enable replacement play button"""
+        if event:
+            if self.wem_tree.focus() != "":
+                sel_wem_data = self.wem_tree.item(self.wem_tree.focus())["values"]
+                sel_id = sel_wem_data[0]
+                if sel_id in self.bnkwizard.wem_array.rep_wem_ids:
+                    self.all_btns["playr"]["state"] = tk.NORMAL
+                else:
+                    self.all_btns["playr"]["state"] = tk.DISABLED
 
     def play_audio(self, repl=False):
         """Play selected audio"""
-        sel_id = int(self.wem_id_list.get()) if self.wem_id_list.get() else -1
-        if sel_id in self.bnkwizard.wem_array.wem_ids:
-            wem_data = self.bnkwizard.wem_array.get_wem(sel_id, repl)
-            play_wem_audio(wem_data)
+        if self.wem_tree.focus() != "":
+            sel_wem_data = self.wem_tree.item(self.wem_tree.focus())
+            sel_id = sel_wem_data["values"][0]
+            if sel_id in self.bnkwizard.wem_array.wem_ids:
+                wem_data = self.bnkwizard.wem_array.get_wem(sel_id, repl)
+                play_wem_audio(wem_data)
 
     def add_wem_replacement(self):
         """Edit the selected wem"""
-        wem_id = int(self.wem_id_list.get()) if self.wem_id_list.get() else -1
-        if wem_id in self.bnkwizard.wem_array.wem_ids:
-            new_wemfile = filedialog.askopenfilename(
-                filetypes=[("Audio Files", ".wem .wav .mp3 .ogg")]
-            )
-            if new_wemfile != "":
-                self.bnkwizard.wem_array.make_replacement(wem_id, new_wemfile)
-                rep_list = list(self.bnkwizard.wem_array.rep_wem_ids)
-                self.rep_wem_id_list["values"] = rep_list
-                self.rep_wem_id_list.set(rep_list[0])
+        if self.wem_tree.focus() != "":
+            sel_wem_data = self.wem_tree.item(self.wem_tree.focus())["values"]
+            sel_id = sel_wem_data[0]
+            if sel_id in self.bnkwizard.wem_array.wem_ids:
+                new_wemfile = filedialog.askopenfilename(
+                    filetypes=[("Audio Files", ".wem .wav .mp3 .ogg")]
+                )
+                if new_wemfile != "":
+                    self.bnkwizard.wem_array.make_replacement(sel_id, new_wemfile)
+                    new_wem_data = list(sel_wem_data)
+                    new_wem_data[2] = os.path.basename(new_wemfile)
+                    print(tuple(new_wem_data))
+                    self.wem_tree.item(
+                        self.wem_tree.focus(), values=tuple(new_wem_data)
+                    )
+                    self.all_btns["playr"]["state"] = tk.NORMAL
 
     def remove_wem_replacement(self):
         """Remove replacment wem"""
-        sel_id = int(self.rep_wem_id_list.get()) if self.rep_wem_id_list.get() else -1
-        if sel_id in self.bnkwizard.wem_array.rep_wem_ids:
-            self.bnkwizard.wem_array.remove_replacement(sel_id)
-            rep_list = list(self.bnkwizard.wem_array.rep_wem_ids)
-            self.rep_wem_id_list["values"] = list(self.bnkwizard.wem_array.rep_wem_ids)
-            self.rep_wem_id_list.set(rep_list[0] if len(rep_list) > 0 else "")
+        if self.wem_tree.focus() != "":
+            sel_wem_data = self.wem_tree.item(self.wem_tree.focus())["values"]
+            sel_id = sel_wem_data[0]
+            if sel_id in self.bnkwizard.wem_array.rep_wem_ids:
+                self.bnkwizard.wem_array.remove_replacement(sel_id)
+                new_wem_data = list(sel_wem_data)
+                new_wem_data[2] = ""
+                sel_id = sel_wem_data[0]
+                self.wem_tree.item(self.wem_tree.focus(), values=tuple(new_wem_data))
+                self.all_btns["playr"]["state"] = tk.DISABLED
 
     def write_new_bnk(self):
         """Write the Base BNK file"""
