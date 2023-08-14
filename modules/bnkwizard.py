@@ -6,9 +6,7 @@ from modules.wemarray import WEMArray
 
 
 class BNKWizard:
-    """
-    BNKWizard Class
-    """
+    """BNKWizard Class"""
 
     def __init__(self) -> None:
         self.bnk = None
@@ -20,9 +18,7 @@ class BNKWizard:
         self.abs_offset = None
 
     def read_bnk(self, bnk: str, little_endian: bool = True) -> None:
-        """
-        Load an existing BNK file and read its contents
-        """
+        """Load an existing BNK file and read its contents"""
         self.bnk = bnk
         if self.input_stream:
             self.input_stream.close()
@@ -64,9 +60,7 @@ class BNKWizard:
         self.wem_array.get_wem_data_from_bnk(self.input_stream, self.abs_offset)
 
     def write_bnk(self, bnk: str, little_endian: bool = True):
-        """
-        Create BNK file and write data to it
-        """
+        """Create BNK file and write data to it"""
         if self.bnk:
             output_stream = OutputStream(bnk, little_endian)
 

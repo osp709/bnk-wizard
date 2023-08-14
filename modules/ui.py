@@ -12,9 +12,7 @@ from modules.audioutils import play_wem_audio, stop_wem_audio
 
 
 class UserInterfaceElements:
-    """
-    Class to create UI elements
-    """
+    """Class to create UI elements"""
 
     def create_root(self, title: str):
         """Create Root"""
@@ -77,9 +75,7 @@ class UserInterfaceElements:
 
 
 class Application:
-    """
-    Class for buiding the application's interface
-    """
+    """Class for buiding the application's interface"""
 
     def __init__(self):
         mixer.init()

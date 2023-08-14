@@ -8,9 +8,7 @@ from pygame import mixer
 
 
 def get_data_as_wem(new_file: str) -> bytes:
-    """
-    If wem data, return as is, else convert to wem and return
-    """
+    """If wem data, return as is, else convert to wem and return"""
     if new_file.endswith(".wem"):
         with open(new_file, "rb") as wem_file:
             return wem_file.read()
@@ -33,9 +31,7 @@ def get_data_as_wem(new_file: str) -> bytes:
 
 
 def play_wem_audio(wem_data: bytes):
-    """
-    Play the given wem audio
-    """
+    """Play the given wem audio"""
     wem_filename = tempfile.gettempdir() + "\\temp.wem"
     with open(wem_filename, mode="wb") as wem_file:
         wem_file.write(wem_data.data)
