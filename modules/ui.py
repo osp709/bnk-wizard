@@ -3,13 +3,12 @@ Module for buiding the application's UI
 """
 
 import tkinter as tk
-import subprocess
-import tempfile
 from typing import Callable, Any, List
 from tkinter import ttk, filedialog, messagebox
 from pygame import mixer
 from PIL import Image, ImageTk
 from modules.bnkwizard import BNKWizard
+from modules.audioutils import play_wem_audio
 
 
 class UserInterfaceElements:
@@ -60,7 +59,9 @@ class UserInterfaceElements:
     ):
         """Create Button"""
         if image:
-            btn = ttk.Button(master=root, image=image, command=command)
+            btn = ttk.Button(
+                master=root, text=text, image=image, compound=tk.LEFT, command=command
+            )
             btn.image = image
         else:
             btn = ttk.Button(master=root, text=text, command=command)
@@ -129,7 +130,7 @@ class Application:
         wem_btns_frame.grid(row=2, column=1, rowspan=2, columnspan=2)
         self.wem_edit_btns["play"] = ui_elem.create_button(
             wem_btns_frame,
-            text="",
+            text="Play",
             image=ui_elem.load_image(file="assets\\play_black.png", size=24),
             command=self.play_audio,
             disabled=True,
@@ -137,23 +138,23 @@ class Application:
         self.wem_edit_btns["play"].grid(row=2, column=1, padx=(10, 5), pady=(10, 10))
         self.wem_edit_btns["stop"] = ui_elem.create_button(
             wem_btns_frame,
-            text="",
+            text="Stop",
             image=ui_elem.load_image(file="assets\\stop_black.png", size=24),
             command=self.stop_audio,
             disabled=True,
         )
         self.wem_edit_btns["stop"].grid(row=2, column=2, padx=(5, 10), pady=(10, 10))
-        self.wem_edit_btns["edit"] = ui_elem.create_button(
+        self.wem_edit_btns["replace"] = ui_elem.create_button(
             wem_btns_frame,
-            text="",
-            image=ui_elem.load_image(file="assets\\edit_black.png", size=24),
+            text="Replace",
+            image=ui_elem.load_image(file="assets\\replace_black.png", size=24),
             command=self.add_wem_replacement,
             disabled=True,
         )
-        self.wem_edit_btns["edit"].grid(row=3, column=1, padx=(10, 5), pady=(10, 10))
+        self.wem_edit_btns["replace"].grid(row=3, column=1, padx=(10, 5), pady=(10, 10))
         self.wem_edit_btns["remove"] = ui_elem.create_button(
             wem_btns_frame,
-            text="",
+            text="Undo",
             image=ui_elem.load_image(file="assets\\clear_black.png", size=24),
             command=self.remove_wem_replacement,
             disabled=True,
@@ -184,27 +185,7 @@ class Application:
         sel_id = int(self.wem_id_list.get()) if self.wem_id_list.get() else -1
         if sel_id in self.bnkwizard.wem_array.wem_ids:
             wem_data = self.bnkwizard.wem_array.get_wem(sel_id)
-            wem_filename = tempfile.gettempdir() + "\\temp.wem"
-            with open(wem_filename, mode="wb") as wem_file:
-                wem_file.write(wem_data.data)
-            try:
-                mixer.music.unload()
-            finally:
-                pass
-            try:
-                wav_filename = wem_filename.split(".wem")[0] + ".wav"
-                subprocess.check_call(
-                    [
-                        r"modules\\vgmstream-win64\\vgmstream-cli.exe",
-                        "-o",
-                        wav_filename,
-                        wem_filename,
-                    ]
-                )
-                mixer.music.load(wav_filename)
-                mixer.music.play()
-            except subprocess.CalledProcessError as err:
-                print(err.output)
+            play_wem_audio(wem_data)
 
     def add_wem_replacement(self):
         """Edit the selected wem"""
@@ -224,7 +205,7 @@ class Application:
             self.bnkwizard.wem_array.remove_replacement(sel_id)
             rep_list = list(self.bnkwizard.wem_array.rep_wem_ids)
             self.rep_wem_id_list["values"] = list(self.bnkwizard.wem_array.rep_wem_ids)
-            self.rep_wem_id_list.set(rep_list[0] if len(rep_list) else "")
+            self.rep_wem_id_list.set(rep_list[0] if len(rep_list) > 0 else "")
 
     def stop_audio(self):
         """Stop if any audio is playing"""

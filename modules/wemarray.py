@@ -3,6 +3,7 @@ wem module
 """
 import dataclasses
 from modules.iostream import InputStream, OutputStream
+from modules.audioutils import get_data_as_wem
 
 
 class WEMArray:
@@ -64,13 +65,12 @@ class WEMArray:
         """
         Add replacement WEM
         """
-        with open(new_wem, "rb") as wem_f:
-            wem_data = wem_f.read()
-            idx: int = self.wem_id_idx_map[wem_id]
-            self.rep_wems[idx].data = wem_data
-            self.rep_wems[idx].offset = self.wems[idx].offset
-            self.rep_wems[idx].size = len(wem_data)
-            self.rep_wem_ids.add(wem_id)
+        wem_data = get_data_as_wem(new_wem)
+        idx: int = self.wem_id_idx_map[wem_id]
+        self.rep_wems[idx].data = wem_data
+        self.rep_wems[idx].offset = self.wems[idx].offset
+        self.rep_wems[idx].size = len(wem_data)
+        self.rep_wem_ids.add(wem_id)
 
     def remove_replacement(self, wem_id: int):
         """
