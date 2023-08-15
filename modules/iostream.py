@@ -1,6 +1,4 @@
-"""
-iostream Module
-"""
+"""iostream: Module to input and output data in a formatted manner"""
 
 import struct
 
@@ -51,14 +49,22 @@ class InputStream(Stream):
     def read_str(self, size: int) -> str:
         """Read data from file as string"""
         data = self.file.read(size)
-        data = struct.unpack(self.fmt_str(str(size) + "s"), data)
-        return data[0].decode()
+        if len(data) == 0:
+            return None
+        if len(data) < size:
+            raise IOError("Not enough data to read string of size ", size, "!")
+        data: bytes = struct.unpack(self.fmt_str(str(size) + "s"), data)[0]
+        return data.decode()
 
     def read_int(self) -> int:
         """Read data from file as integer"""
         data = self.file.read(4)
-        data = struct.unpack(self.fmt_str("I"), data)
-        return data[0]
+        if len(data) == 0:
+            return None
+        if len(data) < 4:
+            raise IOError("Not enough data to read integer!")
+        data: int = struct.unpack(self.fmt_str("I"), data)[0]
+        return data
 
 
 class OutputStream(Stream):

@@ -18,7 +18,7 @@ def get_data_as_wem(new_file: str) -> bytes:
         new_wem_file = tempfile.gettempdir() + "\\temp.wem"
         subprocess.check_call(
             [
-                r"modules\\vgmstream-win64\\vgmstream-cli.exe",
+                r"bin\\vgmstream-cli.exe",
                 "-o",
                 new_wem_file,
                 new_file,
@@ -49,7 +49,7 @@ def save_wem_to_file(wem_data: bytes, aud_filename: str) -> int:
             new_wem_file.write(wem_data)
         subprocess.check_call(
             [
-                r"modules\\vgmstream-win64\\vgmstream-cli.exe",
+                r"bin\\vgmstream-cli.exe",
                 "-o",
                 aud_filename,
                 new_wem_filename,
@@ -80,7 +80,7 @@ def play_wem_audio(wem_data: bytes):
         wav_filename = wem_filename.split(".wem")[0] + ".wav"
         subprocess.check_call(
             [
-                r"modules\\vgmstream-win64\\vgmstream-cli.exe",
+                r"bin\\vgmstream-cli.exe",
                 "-o",
                 wav_filename,
                 wem_filename,

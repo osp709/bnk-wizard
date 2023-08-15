@@ -1,15 +1,13 @@
-"""
-Module for buiding the application's UI
-"""
+"""ui : Module for buiding the application's UI"""
 
 import tkinter as tk
-from typing import Callable, Any, List
+import os
+from typing import Callable, Any
 from tkinter import ttk, filedialog, messagebox
 from pygame import mixer
 from PIL import Image, ImageTk
 from modules.bnkwizard import BNKWizard
 from modules.audioutils import play_wem_audio, stop_wem_audio, save_wem_to_file
-import os
 
 
 class UserInterfaceElements:
@@ -193,13 +191,13 @@ class Application:
                 if btn_name != "playr":
                     btn["state"] = tk.NORMAL
             self.bnkwizard.read_bnk(src_bnkfile, True)
-            for itr, wem_id in enumerate(self.bnkwizard.wem_array.wem_ids):
+            for itr, wem_id in enumerate(self.bnkwizard.wem_list.wem_ids):
                 self.wem_tree.insert(
                     "",
                     tk.END,
                     values=(
                         wem_id,
-                        str(itr + 1).zfill(len(str(self.bnkwizard.wem_array.wem_count)))
+                        str(itr + 1).zfill(len(str(self.bnkwizard.wem_list.wem_count)))
                         + ".bnk",
                         "",
                     ),
@@ -210,8 +208,8 @@ class Application:
         if self.wem_tree.focus() != "":
             sel_wem_data = self.wem_tree.item(self.wem_tree.focus())
             sel_id = sel_wem_data["values"][0]
-            if sel_id in self.bnkwizard.wem_array.wem_ids:
-                wem_data = self.bnkwizard.wem_array.get_wem(sel_id)
+            if sel_id in self.bnkwizard.wem_list.wem_ids:
+                wem_data = self.bnkwizard.wem_list.get_wem(sel_id)
                 wem_filename = filedialog.asksaveasfilename(
                     filetypes=[
                         ("wem Audio", ".wem"),
@@ -236,7 +234,7 @@ class Application:
             if self.wem_tree.focus() != "":
                 sel_wem_data = self.wem_tree.item(self.wem_tree.focus())["values"]
                 sel_id = sel_wem_data[0]
-                if sel_id in self.bnkwizard.wem_array.rep_wem_ids:
+                if sel_id in self.bnkwizard.wem_list.rep_wem_ids:
                     self.all_btns["playr"]["state"] = tk.NORMAL
                 else:
                     self.all_btns["playr"]["state"] = tk.DISABLED
@@ -246,8 +244,8 @@ class Application:
         if self.wem_tree.focus() != "":
             sel_wem_data = self.wem_tree.item(self.wem_tree.focus())
             sel_id = sel_wem_data["values"][0]
-            if sel_id in self.bnkwizard.wem_array.wem_ids:
-                wem_data = self.bnkwizard.wem_array.get_wem(sel_id, repl)
+            if sel_id in self.bnkwizard.wem_list.wem_ids:
+                wem_data = self.bnkwizard.wem_list.get_wem(sel_id, repl)
                 play_wem_audio(wem_data)
 
     def add_wem_replacement(self):
@@ -255,12 +253,12 @@ class Application:
         if self.wem_tree.focus() != "":
             sel_wem_data = self.wem_tree.item(self.wem_tree.focus())["values"]
             sel_id = sel_wem_data[0]
-            if sel_id in self.bnkwizard.wem_array.wem_ids:
+            if sel_id in self.bnkwizard.wem_list.wem_ids:
                 new_wemfile = filedialog.askopenfilename(
                     filetypes=[("Audio Files", ".wem .wav .mp3 .ogg")]
                 )
                 if new_wemfile != "":
-                    self.bnkwizard.wem_array.make_replacement(sel_id, new_wemfile)
+                    self.bnkwizard.wem_list.make_replacement(sel_id, new_wemfile)
                     new_wem_data = list(sel_wem_data)
                     new_wem_data[2] = os.path.basename(new_wemfile)
                     print(tuple(new_wem_data))
@@ -274,8 +272,8 @@ class Application:
         if self.wem_tree.focus() != "":
             sel_wem_data = self.wem_tree.item(self.wem_tree.focus())["values"]
             sel_id = sel_wem_data[0]
-            if sel_id in self.bnkwizard.wem_array.rep_wem_ids:
-                self.bnkwizard.wem_array.remove_replacement(sel_id)
+            if sel_id in self.bnkwizard.wem_list.rep_wem_ids:
+                self.bnkwizard.wem_list.remove_replacement(sel_id)
                 new_wem_data = list(sel_wem_data)
                 new_wem_data[2] = ""
                 sel_id = sel_wem_data[0]
