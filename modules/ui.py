@@ -70,6 +70,7 @@ class UserInterfaceElements:
         """Create Tree"""
         tree = ttk.Treeview(root, columns=columns, show="headings")
         for col, head in zip(columns, headings):
+            tree.column(col, width=100)
             tree.heading(col, text=head)
         return tree
 
@@ -90,7 +91,7 @@ class Application:
             image=ui_elem.load_image(file="assets\\open.png", size=16),
             command=self.read_base_bnk,
         )
-        self.all_btns["open"].grid(row=0, column=0, padx=(10, 5), pady=(10, 10))
+        self.all_btns["open"].grid(row=0, column=0, pady=(10, 10))
         self.all_btns["export"] = ui_elem.create_button(
             self.root,
             text="Export Bank",
@@ -98,31 +99,15 @@ class Application:
             command=self.write_new_bnk,
             disabled=True,
         )
-        self.all_btns["export"].grid(row=0, column=1, padx=(5, 5), pady=(10, 10))
-        self.all_btns["playo"] = ui_elem.create_button(
-            self.root,
-            text="Play(O)",
-            image=ui_elem.load_image(file="assets\\play.png", size=16),
-            command=lambda: self.play_audio(False),
-            disabled=True,
-        )
-        self.all_btns["playo"].grid(row=0, column=2, padx=(5, 5), pady=(10, 10))
-        self.all_btns["playr"] = ui_elem.create_button(
-            self.root,
-            text="Play(R)",
-            image=ui_elem.load_image(file="assets\\play.png", size=16),
-            command=lambda: self.play_audio(True),
-            disabled=True,
-        )
-        self.all_btns["playr"].grid(row=0, column=3, padx=(5, 10), pady=(10, 10))
+        self.all_btns["export"].grid(row=0, column=1, pady=(10, 10))
         self.all_btns["save"] = ui_elem.create_button(
             self.root,
-            text="Save",
+            text="Save Wem",
             image=ui_elem.load_image(file="assets\\save.png", size=16),
             command=self.save_wem,
             disabled=True,
         )
-        self.all_btns["save"].grid(row=1, column=0, padx=(10, 5), pady=(10, 10))
+        self.all_btns["save"].grid(row=0, column=2, pady=(10, 10))
         self.all_btns["replace"] = ui_elem.create_button(
             self.root,
             text="Replace",
@@ -130,15 +115,23 @@ class Application:
             command=self.add_wem_replacement,
             disabled=True,
         )
-        self.all_btns["replace"].grid(row=1, column=1, padx=(5, 5), pady=(10, 10))
-        self.all_btns["remove"] = ui_elem.create_button(
+        self.all_btns["replace"].grid(row=0, column=3, pady=(10, 10))
+        self.all_btns["playo"] = ui_elem.create_button(
             self.root,
-            text="Undo",
-            image=ui_elem.load_image(file="assets\\clear.png", size=16),
-            command=self.remove_wem_replacement,
+            text="Play(O)",
+            image=ui_elem.load_image(file="assets\\play.png", size=16),
+            command=lambda: self.play_audio(False),
             disabled=True,
         )
-        self.all_btns["remove"].grid(row=1, column=2, padx=(5, 5), pady=(10, 10))
+        self.all_btns["playo"].grid(row=1, column=0, pady=(10, 10))
+        self.all_btns["playr"] = ui_elem.create_button(
+            self.root,
+            text="Play(R)",
+            image=ui_elem.load_image(file="assets\\play.png", size=16),
+            command=lambda: self.play_audio(True),
+            disabled=True,
+        )
+        self.all_btns["playr"].grid(row=1, column=1, pady=(10, 10))
         self.all_btns["stop"] = ui_elem.create_button(
             self.root,
             text="Stop",
@@ -146,7 +139,15 @@ class Application:
             command=stop_wem_audio,
             disabled=True,
         )
-        self.all_btns["stop"].grid(row=1, column=3, padx=(5, 10), pady=(10, 10))
+        self.all_btns["stop"].grid(row=1, column=2, pady=(10, 10))
+        self.all_btns["remove"] = ui_elem.create_button(
+            self.root,
+            text="Undo",
+            image=ui_elem.load_image(file="assets\\clear.png", size=16),
+            command=self.remove_wem_replacement,
+            disabled=True,
+        )
+        self.all_btns["remove"].grid(row=1, column=3, pady=(10, 10))
         top_wem_sep = ttk.Separator(
             self.root,
             orient=tk.HORIZONTAL,
@@ -159,10 +160,14 @@ class Application:
             columns=[
                 "id",
                 "orig_wem",
+                "orig_size",
                 "repl_wem",
+                "repl_size",
             ],
-            headings=["ID", "Original Wem", "Replacement Wem"],
+            headings=["ID", "Wem", "Size", "New Wem", "New Size"],
         )
+        self.wem_tree.column("orig_size", anchor=tk.E)
+        self.wem_tree.column("repl_size", anchor=tk.E)
         self.wem_tree.grid(
             row=4, column=0, columnspan=4, sticky=tk.NSEW, padx=(10, 0), pady=(10, 10)
         )
@@ -199,6 +204,14 @@ class Application:
                         wem_id,
                         str(itr + 1).zfill(len(str(self.bnkwizard.wem_list.wem_count)))
                         + ".bnk",
+                        str(
+                            round(
+                                self.bnkwizard.wem_list.get_wem(wem_id).size / 2**10,
+                                2,
+                            )
+                        )
+                        + " KB",
+                        "",
                         "",
                     ),
                 )
@@ -260,8 +273,17 @@ class Application:
                 if new_wemfile != "":
                     self.bnkwizard.wem_list.make_replacement(sel_id, new_wemfile)
                     new_wem_data = list(sel_wem_data)
-                    new_wem_data[2] = os.path.basename(new_wemfile)
-                    print(tuple(new_wem_data))
+                    new_wem_data[3] = os.path.basename(new_wemfile)
+                    new_wem_data[4] = (
+                        str(
+                            round(
+                                self.bnkwizard.wem_list.get_wem(sel_id, True).size
+                                / 2**10,
+                                2,
+                            )
+                        )
+                        + " KB"
+                    )
                     self.wem_tree.item(
                         self.wem_tree.focus(), values=tuple(new_wem_data)
                     )
