@@ -68,10 +68,12 @@ class UserInterfaceElements:
 
     def create_tree(self, root: tk.Tk, columns: [], headings: []):
         """Create Tree"""
-        tree = ttk.Treeview(root, columns=columns, show="headings")
+        tree = ttk.Treeview(root, columns=columns)
+        tree.column("#0", width=20, minwidth=20)
         for col, head in zip(columns, headings):
-            tree.column(col, width=100)
+            tree.column(col, width=600 // len(columns))
             tree.heading(col, text=head)
+        tree["show"] = ["tree", "headings"]
         return tree
 
 
@@ -172,15 +174,32 @@ class Application:
             row=4, column=0, columnspan=4, sticky=tk.NSEW, padx=(10, 0), pady=(10, 10)
         )
 
-        scrollbar = ttk.Scrollbar(
+        wem_scrollbar = ttk.Scrollbar(
             self.root, orient=tk.VERTICAL, command=self.wem_tree.yview
         )
-        self.wem_tree.configure(yscroll=scrollbar.set)
+        self.wem_tree.configure(yscroll=wem_scrollbar.set)
         self.wem_tree.bind("<<TreeviewSelect>>", self.enable_play_repl_button)
-        scrollbar.grid(row=4, column=4, sticky=tk.NS, padx=(0, 10), pady=(10, 10))
-        self.root.resizable(False, False)
+        wem_scrollbar.grid(row=4, column=4, sticky=tk.NS, padx=(0, 10), pady=(10, 10))
         for i in range(self.root.grid_size()[0]):
             self.root.grid_columnconfigure(i, weight=1)
+        self.wwise_tree = ui_elem.create_tree(
+            self.root,
+            columns=[
+                "id",
+                "section_type",
+                "section_name",
+            ],
+            headings=["ID", "Section Type", "Section Name"],
+        )
+        self.wwise_tree.grid(
+            row=5, column=0, columnspan=4, sticky=tk.NSEW, padx=(10, 0), pady=(10, 10)
+        )
+        wwise_scrollbar = ttk.Scrollbar(
+            self.root, orient=tk.VERTICAL, command=self.wwise_tree.yview
+        )
+        self.wwise_tree.configure(yscroll=wwise_scrollbar.set)
+        wwise_scrollbar.grid(row=5, column=4, sticky=tk.NS, padx=(0, 10), pady=(10, 10))
+        self.root.resizable(False, False)
         self.root.mainloop()
 
     def read_base_bnk(self):
@@ -200,6 +219,7 @@ class Application:
                 self.wem_tree.insert(
                     "",
                     tk.END,
+                    iid=wem_id,
                     values=(
                         wem_id,
                         str(itr + 1).zfill(len(str(self.bnkwizard.wem_list.wem_count)))
@@ -215,6 +235,29 @@ class Application:
                         "",
                     ),
                 )
+            for itr, wwise_id in enumerate(self.bnkwizard.wwise_list.wwise_ids):
+                wwise_obj = self.bnkwizard.wwise_list.get_wwise(wwise_id)
+                self.wwise_tree.insert(
+                    "",
+                    tk.END,
+                    iid=wwise_id,
+                    values=(
+                        wwise_id,
+                        wwise_obj.section_type,
+                        wwise_obj.get_name(),
+                    ),
+                    open=False,
+                )
+                wwise_metadata = wwise_obj.get_metadata()
+                for meta_id, meta_value in wwise_metadata.items():
+                    self.wwise_tree.insert(
+                        wwise_id,
+                        tk.END,
+                        values=(
+                            meta_id,
+                            str(meta_value),
+                        ),
+                    )
 
     def save_wem(self):
         """Save wem to file"""
@@ -298,7 +341,6 @@ class Application:
                 self.bnkwizard.wem_list.remove_replacement(sel_id)
                 new_wem_data = list(sel_wem_data)
                 new_wem_data[2] = ""
-                sel_id = sel_wem_data[0]
                 self.wem_tree.item(self.wem_tree.focus(), values=tuple(new_wem_data))
                 self.all_btns["playr"]["state"] = tk.DISABLED
 

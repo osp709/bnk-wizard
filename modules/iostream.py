@@ -1,18 +1,20 @@
 """iostream: Module to input and output data in a formatted manner"""
 
 import struct
+from io import BytesIO
 
 
 class Stream:
     """Stream Class : Stream superclass"""
 
     def __init__(self, file: str, fmt: str, little_endian: bool = True):
-        if fmt == "rb":
-            self.file = open(file, "rb")
-        elif fmt == "wb":
-            self.file = open(file, "wb")
+        if file != "":
+            if fmt == "rb":
+                self.file = open(file, "rb")
+            elif fmt == "wb":
+                self.file = open(file, "wb")
         else:
-            raise OSError("Wrong file read format!")
+            self.file = BytesIO()
         self.little_endian = little_endian
 
     def fmt_str(self, f_str: str):
@@ -84,5 +86,5 @@ class OutputStream(Stream):
 
     def write_int(self, data: int) -> bool:
         """Write integer data to file"""
-        data = struct.pack(self.fmt_str("i"), data)
+        data = struct.pack(self.fmt_str("I"), data)
         return self.file.write(data)

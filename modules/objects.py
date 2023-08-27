@@ -1,5 +1,6 @@
 """wem module"""
 from dataclasses import dataclass
+from io import BytesIO
 from modules.iostream import InputStream, OutputStream
 from modules.audioutils import get_data_as_wem
 
@@ -140,3 +141,95 @@ class WemList:
             idx: int = self.wem_id_idx_map[wem_id]
             out.set_position(self.abs_offset + self.final_wems[idx].offset)
             out.write_bytes(self.final_wems[idx].data)
+
+
+class Wwise:
+    """Wwise Object Class"""
+
+    section_type_name_dict: {} = {
+        1: "Settings",
+        2: "Sound SFX/Voice",
+        3: "Event Action",
+        4: "Event",
+        5: "Random/Sequence Container",
+        6: "Switch Container",
+        7: "Actor-Mixer",
+        8: "Audio Bus",
+        9: "Blend Container",
+        10: "Music Segment",
+        11: "Music Track",
+        12: "Music Switch Container",
+        13: "Music Playlist Container",
+        14: "Attenuation",
+        15: "Dialogue Event",
+        16: "Motion Bus",
+        17: "Motion FX",
+        18: "Effect",
+        19: "Unknown Section",
+        20: "Auxilary Bus",
+    }
+    section_type: int
+    size: int
+    wwise_id: int
+    data: bytes
+
+    def __init__(self):
+        pass
+
+    def get_name(self):
+        """Get name of the section type"""
+        return self.section_type_name_dict[self.section_type]
+
+    def get_metadata(self) -> dict:
+        """Get metadata of the section"""
+        metadata = {}
+        inp = InputStream("")
+        inp.file = BytesIO(self.data)
+        if self.section_type == 2:  # Sound SFX/Voice
+            fetch_type = {0: "Embedded", 1: "Streamed", 2: "Prefetched"}
+            metadata["Unknown"] = inp.read_str(4)
+            metadata["Fetch Type"] = fetch_type[int.from_bytes(inp.read_bytes(1))]
+            metadata["Audio Id"] = inp.read_int()
+            metadata["Source Id"] = inp.read_int()
+            metadata["Audio Offset"] = inp.read_int()
+            metadata["Audio Length"] = inp.read_int()
+            inp.close()
+        return metadata
+
+
+class WwiseList:
+    """Wwise Object List"""
+
+    hirc_size = None
+    num_wwise = None
+    wwise_id_idx_dict = {}
+    wwise_ids = []
+    wwise_objs = []
+
+    def read_wwise_list(self, inp: InputStream):
+        """Read Wwise List"""
+        self.hirc_size = inp.read_int()
+        self.num_wwise = inp.read_int()
+        self.wwise_objs = [Wwise() for _ in range(self.num_wwise)]
+        for i in range(self.num_wwise):
+            self.wwise_objs[i].section_type = int.from_bytes(inp.read_bytes(1))
+            self.wwise_objs[i].size = inp.read_int()
+            self.wwise_objs[i].wwise_id = inp.read_int()
+            self.wwise_objs[i].data = inp.read_bytes(self.wwise_objs[i].size - 4)
+            self.wwise_ids.append(self.wwise_objs[i].wwise_id)
+            self.wwise_id_idx_dict[self.wwise_objs[i].wwise_id] = i
+
+    def get_wwise(self, wwise_id: int) -> Wwise:
+        """Get Wwise Data"""
+        return self.wwise_objs[self.wwise_id_idx_dict[wwise_id]]
+
+    def write_wwise_list(self, out: OutputStream):
+        """Write Wwise List"""
+        out.write_int(self.hirc_size)
+        out.write_int(self.num_wwise)
+        for wwise_id in self.wwise_ids:
+            idx: int = self.wwise_id_idx_dict[wwise_id]
+            out.write_bytes(self.wwise_objs[idx].section_type.to_bytes(1))
+            out.write_int(self.wwise_objs[idx].size)
+            out.write_int(self.wwise_objs[idx].wwise_id)
+            out.write_bytes(self.wwise_objs[idx].data)
